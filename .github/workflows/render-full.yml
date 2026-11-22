@@ -1,0 +1,41 @@
+name: Render Demo Gravitasi (S01-S06)
+
+# Render komposisi GravitasiDemo (6041 frame, 1280x720, 30fps) tanpa audio.
+on:
+  workflow_dispatch:
+
+jobs:
+  render:
+    name: Render Demo
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install system deps for Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libatspi2.0-0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libxkbcommon0 libpango-1.0-0 libcairo2 libasound2t64
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Ensure browser
+        run: npx remotion browser ensure
+
+      - name: Render GravitasiDemo
+        run: npx remotion render GravitasiDemo demo-silent.mp4 --concurrency=4
+
+      - name: Upload video
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-silent
+          path: demo-silent.mp4
+          retention-days: 7
